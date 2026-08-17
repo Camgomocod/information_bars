@@ -1,0 +1,9 @@
+name: trading-core
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+    - -e .[dev,db,visualization,notebooks]

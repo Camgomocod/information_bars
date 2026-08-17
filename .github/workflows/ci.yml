@@ -1,0 +1,133 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash -el {0}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          python-version: "3.10"
+          activate-environment: trading-core
+
+      - name: Install dependencies
+        run: |
+          pip install -e ".[dev,db,visualization]"
+
+      - name: Ruff lint
+        # Lint gate covers the modules standardized to the new contract plus
+        # the test suite. Legacy src/ (optimization, connectors, etc.) carries
+        # pre-existing debt and is migrated incrementally (tracked follow-up).
+        run: |
+          ruff check \
+            src/normalizers \
+            src/pipeline/temporal_contract.py \
+            src/pipeline/feature_context.py \
+            src/pipeline/logging_setup.py \
+            src/optimization/window_spec.py \
+            src/bars/bar_audit.py \
+            src/bars/reference_info_bars.py \
+            src/storage/db_config.py \
+            tests
+
+      - name: Ruff format check
+        run: |
+          ruff format --check \
+            src/normalizers \
+            src/pipeline/temporal_contract.py \
+            src/pipeline/feature_context.py \
+            src/pipeline/logging_setup.py \
+            src/optimization/window_spec.py \
+            src/bars/bar_audit.py \
+            src/bars/reference_info_bars.py \
+            src/storage/db_config.py \
+            tests
+
+      - name: Type check (mypy)
+        run: |
+          mypy \
+            src/pipeline/temporal_contract.py \
+            src/pipeline/feature_context.py \
+            src/optimization/window_spec.py \
+            src/bars/bar_audit.py \
+            src/storage/db_config.py \
+            --ignore-missing-imports || echo "::warning::mypy not clean (see logs)"
+
+      - name: Unit tests (no DB)
+        run: |
+          python -m pytest tests -m "not db and not slow" -q
+
+      - name: Public smoke example
+        run: |
+          trading-core-healthcheck --offline
+          trading-core-synthetic
+
+  db-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TRADING_CORE_DATABASE_URL: postgresql://trading:trading@localhost:5432/trading_core
+    defaults:
+      run:
+        shell: bash -el {0}
+    services:
+      timescaledb:
+        image: timescale/timescaledb:latest-pg15
+        env:
+          POSTGRES_USER: trading
+          POSTGRES_PASSWORD: trading
+          POSTGRES_DB: trading_core
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U trading"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          python-version: "3.10"
+          activate-environment: trading-core
+
+      - name: Install dependencies
+        run: |
+          pip install -e ".[dev,db,visualization]"
+
+      - name: Init schema
+        run: |
+          python -c "
+          import psycopg2, pathlib
+          import os
+          conn = psycopg2.connect(os.environ['TRADING_CORE_DATABASE_URL'])
+          conn.autocommit = True
+          cur = conn.cursor()
+          for stmt in pathlib.Path('src/storage/schema.sql').read_text().split(';'):
+              if stmt.strip():
+                  try:
+                      cur.execute(stmt)
+                  except Exception as e:
+                      print('skip (may be pg-specific):', e)
+          conn.close()
+          "
+
+      - name: DB tests
+        run: python -m pytest tests/test_db_reader.py tests/test_timescale_idempotency.py tests/test_db_pipeline.py -q

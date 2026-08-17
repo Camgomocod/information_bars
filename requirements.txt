@@ -1,0 +1,3 @@
+# Compatibility install for users who prefer requirements files.
+# Development and optional features are defined in pyproject.toml.
+-e .

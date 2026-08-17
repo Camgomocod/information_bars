@@ -1,0 +1,76 @@
+# Bars configuration for trading-core
+# Parameters for Dollar Run Bars (DRB) and other bar types
+
+drb:
+  # Default hyperparameters (global fallback)
+  exp_lambda: 0.9975
+  init_exp_T: 2000
+
+  # Per-symbol fallback hyperparameters (from optimization)
+  per_symbol:
+    BTCUSDT:
+      exp_lambda: 0.9975
+      init_exp_T: 14738
+    ETHUSDT:
+      exp_lambda: 0.9975
+      init_exp_T: 5000
+    BNBUSDT:
+      exp_lambda: 0.9975
+      init_exp_T: 500
+    SOLUSDT:
+      exp_lambda: 0.9975
+      init_exp_T: 2000
+
+  # Per-symbol T floors to prevent E[T] → 0 cascade collapse
+  # When E[T] shrinks below the floor, DRBs degenerate into tick-count bars
+  T_floor:
+    BTCUSDT: 200
+    ETHUSDT: 300
+    SOLUSDT: 100
+    BNBUSDT: 50
+
+  # Minimum ticks per bar (prevents ultra-thin bars)
+  min_ticks: 400
+
+# Data cleaning (MAD outlier filter)
+# Used by DataNormalizer.clean_raw_ticks() throughout training and inference
+cleaning:
+  mad_window: 100
+  k_factor: 10.0
+  winsorize_limits: [0.01, 0.01]
+
+# Dollar Imbalance Bars (DIB)
+dib:
+  exp_lambda: 0.9975
+  init_exp_T: 2000
+  min_ticks: 10
+  imbalance_threshold: 0.5
+
+# Standard bars (time-based)
+standard:
+  # Time bars: 1min, 5min, 15min, 1hr
+  time_intervals:
+    - 1
+    - 5
+    - 15
+    - 60
+
+  # Volume bars: threshold in dollars
+  dollar_threshold: 100000
+
+  # Tick bars: number of ticks
+  tick_count: 1000
+
+# Statistics quality thresholds
+quality:
+  # Minimum completion rate for bar generation
+  min_completion_rate: 0.60
+
+  # Jarque-Bera test threshold (reject non-normal residuals)
+  jb_threshold: 5.0
+
+  # ADF test threshold (reject non-stationary)
+  adf_threshold: 0.05
+
+  # Ljung-Box test threshold (reject autocorrelated)
+  lb_threshold: 0.05

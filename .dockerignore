@@ -1,0 +1,14 @@
+.git
+.github
+.venv
+__pycache__
+.pytest_cache
+.ruff_cache
+data_raw
+data
+data_optimized
+experiments
+optimization/experiments
+logs
+backups
+*.pyc

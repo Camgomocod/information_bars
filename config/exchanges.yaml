@@ -1,0 +1,43 @@
+# Exchanges configuration for trading-core
+# API endpoints and connection settings
+
+binance:
+  # Data download URLs
+  base_url: "https://data.binance.vision/data/spot/daily/trades"
+
+  # Optional: REST API for live data (not currently used)
+  api_url: "https://api.binance.com"
+
+  # Stream URL for real-time data (not currently used)
+  stream_url: "wss://stream.binance.com:9443"
+
+  # Rate limiting
+  rate_limit:
+    requests_per_minute: 1200
+    requests_per_second: 10
+
+binance_futures:
+  # Binance Futures API — funding rate data (public, no API key needed)
+  fapi_url: "https://fapi.binance.com"
+
+  # Endpoint used:
+  #   /fapi/v1/fundingRate — funding rate (every 8h, historical data available)
+
+  # Rate limiting
+  rate_limit:
+    requests_per_minute: 1200
+    requests_per_second: 10
+
+  # Local cache directory
+  data_dir: "data_raw/futures"
+
+# Placeholder for future exchange connectors
+bybit:
+  # TODO: Implement Bybit connector
+  # Relevant for derivative data (perpetuals, options)
+  base_url: "https://bybit.com"
+  api_url: "https://api.bybit.com"
+
+coinbase:
+  # TODO: Implement Coinbase connector
+  base_url: "https://pro-api.coinbase.com"

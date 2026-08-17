@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+title: "Information Bars: Crypto market microstructure pipeline"
+message: "If you use Information Bars in research, please cite this repository."
+type: software
+authors:
+  - name: Camilo Goyes
+repository-code: "https://github.com/Camgomocod/information_bars"
+license: MIT
+version: 0.1.0
+abstract: >-
+  Converts exchange tick data into Dollar Run Bars and machine-learning-ready
+  features with causal walk-forward hyperparameter optimization.

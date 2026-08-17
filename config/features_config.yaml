@@ -1,0 +1,46 @@
+# Features configuration for trading-core
+# Parameters for VectorBT feature calculators
+
+returns:
+  frac_diff_d: 0.4
+  frac_diff_thres: 0.0001
+
+volatility:
+  window: 20
+  atr_window: 14
+
+volume:
+  window: 20
+
+microstructure:
+  rsi_window: 14
+  bb_window: 20
+  bb_alpha: 2.0
+
+positioning:
+  funding_rate_window: 3
+  data_dir: "data_raw/futures"
+
+# Feature columns that will be generated
+feature_columns:
+  - log_return
+  - frac_diff_return
+  - rolling_volatility
+  - bar_range
+  - atr_pct
+  - volume_z
+  - dollar_value_z
+  - n_ticks_z
+  - vwap
+  - price_to_vwap
+  - bar_duration_secs
+  - rsi
+  - bb_pct_b
+  - macd_hist
+  - funding_rate_mean
+
+# Data cleaning
+cleaning:
+  mad_window: 100
+  k_factor: 10.0
+  winsorize_limits: [0.01, 0.01]

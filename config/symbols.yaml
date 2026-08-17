@@ -1,0 +1,11 @@
+# Symbols configuration for trading-core
+# Only symbols with optimization studies in experiments/ can be processed
+
+symbols:
+  - BTCUSDT
+  - ETHUSDT
+  - BNBUSDT
+  - SOLUSDT
+
+# Default symbol if none specified
+default: BTCUSDT
